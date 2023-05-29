@@ -1,0 +1,63 @@
+﻿@page "/"
+@inject IConfiguration mConfig
+
+<PageTitle>Guess a number</PageTitle>
+
+<h1>Guess a number</h1>
+
+@if (IsWon)
+{
+    <p>You guessed number @Guessed in @Attempt attempts.</p>
+}
+else
+{
+    <p>Guess a number from 1 to @(MaxNumber).</p>
+    <p>Attempt number @Attempt</p>
+
+    <div class="flex">
+    @foreach (var n in Available)
+    {
+        <button @onclick="@(() => SubmitGuess(n))">@n</button>
+    }
+    </div>
+}
+
+
+@code{
+    private int MaxNumber;
+    private int IntervalLow;
+    private int IntervalHigh;
+    private int Guessed;
+    private int Attempt = 1;
+    private bool IsWon;
+
+
+    private IEnumerable<int> Available => Enumerable.Range(IntervalLow, IntervalHigh - IntervalLow + 1);
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        MaxNumber = mConfig.GetValue<int>("MaxNumber");
+        IntervalLow = 1;
+        IntervalHigh = MaxNumber - 1;
+        Guessed = Random.Shared.Next(IntervalLow, IntervalHigh);
+    }
+
+
+    private void SubmitGuess(int number)
+    {
+        if (number == Guessed)
+        {
+            IsWon = true;
+            return;
+        }
+
+        Attempt++;
+
+        if (number < Guessed)
+            IntervalLow = number + 1;
+        else
+            IntervalHigh = number - 1;
+    }
+}
